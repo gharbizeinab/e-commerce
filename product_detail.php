@@ -16,8 +16,8 @@ if (!$product_id) {
     exit();
 }
 
-// Get product data
-$product = getProductById($pdo, $product_id);
+// Récupérer les données du produit
+$product = getProductById($product_id);
 if (!$product) {
     $_SESSION['error_message'] = 'Produit non trouvé.';
     header('Location: products.php');
@@ -26,13 +26,19 @@ if (!$product) {
 
 $page_title = htmlspecialchars($product['name']) . ' - La Beauté Bio';
 
-// Get related products from same category
-$stmt = $pdo->prepare("SELECT p.*, c.name as category_name FROM products p
-                      LEFT JOIN categories c ON p.category_id = c.id
-                      WHERE p.category_id = ? AND p.id != ? AND p.is_active = 1
-                      ORDER BY RAND() LIMIT 4");
-$stmt->execute([$product['category_id'], $product_id]);
-$related_products = $stmt->fetchAll();
+// Récupérer les produits similaires de la même catégorie
+$category_id = cleanInput($product['category_id']);
+$current_product_id = cleanInput($product_id);
+$sql = "SELECT p.*, c.name as category_name FROM products p
+        LEFT JOIN categories c ON p.category_id = c.id
+        WHERE p.category_id = '$category_id' AND p.id != '$current_product_id' AND p.is_active = 1
+        ORDER BY RAND() LIMIT 4";
+$result = executeQuery($sql);
+
+$related_products = array();
+while ($row = mysqli_fetch_assoc($result)) {
+    $related_products[] = $row;
+}
 ?>
 
 <!DOCTYPE html>
@@ -475,11 +481,12 @@ $related_products = $stmt->fetchAll();
     </div>
     <div>
         <h3>Nous parler</h3>
-        <p><i class="fas fa-phone"></i> +33 1 23 45 67 89</p>
+        <p><i class="fas fa-phone"></i> +216 71 123 456</p>
+        <p><i class="fas fa-mobile-alt"></i> +216 98 765 432</p>
     </div>
     <div>
         <h3>Nous écrire</h3>
-        <p><a href="mailto:contact@labeautebio.fr" style="color: white;"><i class="fas fa-envelope"></i> contact@labeautebio.fr</a></p>
+        <p><a href="mailto:contact@labeautebio.tn" style="color: white;"><i class="fas fa-envelope"></i> contact@labeautebio.tn</a></p>
     </div>
 </footer>
 

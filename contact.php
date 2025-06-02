@@ -41,8 +41,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Save message if no errors
         if (empty($errors)) {
             try {
-                $stmt = $pdo->prepare("INSERT INTO contact_messages (name, email, subject, message) VALUES (?, ?, ?, ?)");
-                if ($stmt->execute([$name, $email, $subject, $message])) {
+                $stmt = $connection->query("INSERT INTO contact_messages (name, email, subject, message) VALUES ('$name', '$email', '$subject', '$message')"); if ($stmt) {
                     $success = true;
                     $_SESSION['success_message'] = 'Votre message a été envoyé avec succès ! Nous vous répondrons dans les plus brefs délais.';
                     // Clear form data

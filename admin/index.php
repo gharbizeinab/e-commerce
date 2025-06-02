@@ -17,41 +17,47 @@ $page_title = 'Administration';
 $stats = [];
 
 // Total products
-$stmt = $pdo->query("SELECT COUNT(*) as total FROM products");
+$stmt = $connection->query("SELECT COUNT(*) as total FROM products");
 $stats['total_products'] = $stmt->fetch()['total'];
 
 // Total categories
-$stmt = $pdo->query("SELECT COUNT(*) as total FROM categories");
+$stmt = $connection->query("SELECT COUNT(*) as total FROM categories");
 $stats['total_categories'] = $stmt->fetch()['total'];
 
 // Total users (clients)
-$stmt = $pdo->query("SELECT COUNT(*) as total FROM users WHERE role = 'client'");
+$stmt = $connection->query("SELECT COUNT(*) as total FROM users WHERE role = 'client'");
 $stats['total_clients'] = $stmt->fetch()['total'];
 
 // Total orders
-$stmt = $pdo->query("SELECT COUNT(*) as total FROM orders");
+$stmt = $connection->query("SELECT COUNT(*) as total FROM orders");
 $stats['total_orders'] = $stmt->fetch()['total'];
 
 // Pending orders
-$stmt = $pdo->query("SELECT COUNT(*) as total FROM orders WHERE status = 'pending'");
+$stmt = $connection->query("SELECT COUNT(*) as total FROM orders WHERE status = 'pending'");
 $stats['pending_orders'] = $stmt->fetch()['total'];
 
 // Low stock products (stock <= 5)
-$stmt = $pdo->query("SELECT COUNT(*) as total FROM products WHERE stock_quantity <= 5");
+$stmt = $connection->query("SELECT COUNT(*) as total FROM products WHERE stock_quantity <= 5");
 $stats['low_stock_products'] = $stmt->fetch()['total'];
 
 // Recent products
-$stmt = $pdo->query("SELECT p.*, c.name as category_name FROM products p 
+$stmt = $connection->query("SELECT p.*, c.name as category_name FROM products p 
                     LEFT JOIN categories c ON p.category_id = c.id 
                     ORDER BY p.created_at DESC LIMIT 5");
-$recent_products = $stmt->fetchAll();
+$recent_products = array();
+while ($row = mysqli_fetch_assoc($result)) {
+    $recent_products[] = $row;
+}
 
 // Low stock products
-$stmt = $pdo->query("SELECT p.*, c.name as category_name FROM products p 
+$stmt = $connection->query("SELECT p.*, c.name as category_name FROM products p 
                     LEFT JOIN categories c ON p.category_id = c.id 
                     WHERE p.stock_quantity <= 5 
                     ORDER BY p.stock_quantity ASC LIMIT 10");
-$low_stock_products = $stmt->fetchAll();
+$low_stock_products = array();
+while ($row = mysqli_fetch_assoc($result)) {
+    $low_stock_products[] = $row;
+}
 ?>
 
 <?php include '../includes/admin_header.php'; ?>

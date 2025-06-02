@@ -22,9 +22,8 @@ $success = false;
 
 // Get current user data
 $user_id = $_SESSION['user_id'];
-$stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
-$stmt->execute([$user_id]);
-$user = $stmt->fetch();
+$stmt = $connection->query("SELECT * FROM users WHERE id = '$user_id'");
+$user = mysqli_fetch_assoc($result);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Validate CSRF token
@@ -69,11 +68,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'address' => $address
             ];
 
-            if (updateUser($pdo, $user_id, $update_data)) {
+            if (updateUser($connection, $user_id, $update_data)) {
                 // Update password if provided
                 if (!empty($new_password)) {
-                    $stmt = $pdo->prepare("UPDATE users SET password = ?, updated_at = NOW() WHERE id = ?");
-                    $stmt->execute([hashPassword($new_password), $user_id]);
+                    $stmt = $connection->query("UPDATE users SET password = 'hashPassword($new_password)', updated_at = NOW() WHERE id = '$user_id'");
                 }
 
                 $success = true;
@@ -81,9 +79,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['full_name'] = $full_name; // Update session data
                 
                 // Refresh user data
-                $stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
-                $stmt->execute([$user_id]);
-                $user = $stmt->fetch();
+                $stmt = $connection->query("SELECT * FROM users WHERE id = '$user_id'");
+                $user = mysqli_fetch_assoc($result);
             } else {
                 $errors[] = 'Erreur lors de la mise à jour du profil. Veuillez réessayer.';
             }
@@ -92,13 +89,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 // Get user's orders
-$stmt = $pdo->prepare("SELECT o.*, COUNT(oi.id) as item_count FROM orders o 
+$stmt = $connection->query("SELECT o.*, COUNT(oi.id) as item_count FROM orders o 
                       LEFT JOIN order_items oi ON o.id = oi.order_id 
-                      WHERE o.user_id = ? 
+                      WHERE o.user_id = '$user_id' 
                       GROUP BY o.id 
                       ORDER BY o.created_at DESC LIMIT 5");
-$stmt->execute([$user_id]);
-$recent_orders = $stmt->fetchAll();
+$recent_orders = array();
+while ($row = mysqli_fetch_assoc($result)) {
+    $recent_orders[] = $row;
+}
 ?>
 
 <!DOCTYPE html>

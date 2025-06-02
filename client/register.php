@@ -42,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $errors[] = 'Le nom d\'utilisateur est requis.';
         } elseif (strlen($username) < 3) {
             $errors[] = 'Le nom d\'utilisateur doit contenir au moins 3 caractères.';
-        } elseif (getUserByUsername($pdo, $username)) {
+        } elseif (getUserByUsername($connection, $username)) {
             $errors[] = 'Ce nom d\'utilisateur est déjà utilisé.';
         }
 
@@ -50,7 +50,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $errors[] = 'L\'adresse email est requise.';
         } elseif (!isValidEmail($email)) {
             $errors[] = 'L\'adresse email n\'est pas valide.';
-        } elseif (getUserByEmail($pdo, $email)) {
+        } elseif (getUserByEmail($email)) {
             $errors[] = 'Cette adresse email est déjà utilisée.';
         }
 
@@ -80,7 +80,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'role' => 'client'
             ];
 
-            if (createUser($pdo, $user_data)) {
+            if (createUser($user_data)) {
                 $success = true;
                 $_SESSION['success_message'] = 'Inscription réussie ! Vous pouvez maintenant vous connecter.';
             } else {

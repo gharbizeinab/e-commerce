@@ -14,13 +14,16 @@ requireAdmin();
 $page_title = 'Gestion des produits';
 
 // Get all products with category information
-$stmt = $pdo->query("SELECT p.*, c.name as category_name FROM products p
+$stmt = $connection->query("SELECT p.*, c.name as category_name FROM products p
                     LEFT JOIN categories c ON p.category_id = c.id
                     ORDER BY p.name");
-$products = $stmt->fetchAll();
+$products = array();
+while ($row = mysqli_fetch_assoc($result)) {
+    $products[] = $row;
+}
 
 // Get categories for filter
-$categories = getCategories($pdo);
+$categories = getCategories();
 ?>
 
 <?php include '../includes/admin_header.php'; ?>

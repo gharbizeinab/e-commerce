@@ -17,7 +17,7 @@ $errors = [];
 $success = false;
 
 // Get categories
-$categories = getCategories($pdo);
+$categories = getCategories();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Validate CSRF token
@@ -74,7 +74,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'characteristics' => $characteristics
             ];
 
-            if (addProduct($pdo, $product_data)) {
+            if (addProduct($product_data)) {
                 $success = true;
                 $_SESSION['success_message'] = 'Produit ajouté avec succès !';
                 

@@ -19,14 +19,17 @@ $page_title = 'Mes Commandes - La Beauté Bio';
 $current_user = getCurrentUser();
 
 // Get client's orders
-$stmt = $pdo->prepare("SELECT o.*, COUNT(oi.id) as item_count
+$stmt = $connection->query("SELECT o.*, COUNT(oi.id) as item_count
                       FROM orders o 
                       LEFT JOIN order_items oi ON o.id = oi.order_id
                       WHERE o.user_id = ?
                       GROUP BY o.id
                       ORDER BY o.created_at DESC");
 $stmt->execute([$current_user['id']]);
-$orders = $stmt->fetchAll();
+$orders = array();
+while ($row = mysqli_fetch_assoc($result)) {
+    $orders[] = $row;
+}
 ?>
 
 <!DOCTYPE html>

@@ -10,15 +10,20 @@ require_once 'includes/functions.php';
 
 $page_title = 'La Beauté Bio - Cosmétiques Naturels';
 
-// Get featured products (latest 8 products)
-$stmt = $pdo->query("SELECT p.*, c.name as category_name FROM products p
-                    LEFT JOIN categories c ON p.category_id = c.id
-                    WHERE p.is_active = 1
-                    ORDER BY p.is_featured DESC, p.created_at DESC LIMIT 8");
-$featured_products = $stmt->fetchAll();
+// Récupérer les produits en vedette (8 derniers produits)
+$sql = "SELECT p.*, c.name as category_name FROM products p
+        LEFT JOIN categories c ON p.category_id = c.id
+        WHERE p.is_active = 1
+        ORDER BY p.is_featured DESC, p.created_at DESC LIMIT 8";
+$result = executeQuery($sql);
 
-// Get categories for navigation
-$categories = getCategories($pdo);
+$featured_products = array();
+while ($row = mysqli_fetch_assoc($result)) {
+    $featured_products[] = $row;
+}
+
+// Récupérer les catégories pour la navigation
+$categories = getCategories();
 ?>
 
 <!DOCTYPE html>
@@ -243,9 +248,10 @@ $categories = getCategories($pdo);
         </a>
     </p>
     <div style="margin-top: 30px;">
-        <p><i class="fas fa-phone"></i> <strong>Téléphone :</strong> +33 1 23 45 67 89</p>
-        <p><i class="fas fa-envelope"></i> <strong>Email :</strong> contact@labeautebio.fr</p>
-        <p><i class="fas fa-map-marker-alt"></i> <strong>Adresse :</strong> 123 Rue de la Beauté, 75001 Paris</p>
+        <p><i class="fas fa-phone"></i> <strong>Téléphone :</strong> +216 71 123 456</p>
+        <p><i class="fas fa-mobile-alt"></i> <strong>Mobile :</strong> +216 98 765 432</p>
+        <p><i class="fas fa-envelope"></i> <strong>Email :</strong> contact@labeautebio.tn</p>
+        <p><i class="fas fa-map-marker-alt"></i> <strong>Adresse :</strong> Avenue Habib Bourguiba, Centre Ville, 1001 Tunis, Tunisie</p>
     </div>
 </section>
 
@@ -260,11 +266,12 @@ $categories = getCategories($pdo);
     </div>
     <div>
         <h3>Nous parler</h3>
-        <p><i class="fas fa-phone"></i> +33 1 23 45 67 89</p>
+        <p><i class="fas fa-phone"></i> +216 71 123 456</p>
+        <p><i class="fas fa-mobile-alt"></i> +216 98 765 432</p>
     </div>
     <div>
         <h3>Nous écrire</h3>
-        <p><a href="mailto:contact@labeautebio.fr" style="color: white;"><i class="fas fa-envelope"></i> contact@labeautebio.fr</a></p>
+        <p><a href="mailto:contact@labeautebio.tn" style="color: white;"><i class="fas fa-envelope"></i> contact@labeautebio.tn</a></p>
     </div>
 </footer>
 

@@ -20,7 +20,7 @@ if (!$product_id) {
 }
 
 // Get product data
-$product = getProductById($pdo, $product_id);
+$product = getProductById($product_id);
 if (!$product) {
     $_SESSION['error_message'] = 'Produit non trouvé.';
     header('Location: products.php');
@@ -36,10 +36,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit();
     }
 
-    // Check if product is referenced in orders
-    $stmt = $pdo->prepare("SELECT COUNT(*) as count FROM order_items WHERE product_id = ?");
-    $stmt->execute([$product_id]);
-    $order_count = $stmt->fetch()['count'];
+    // Check if product is referenced in orders (version sans prepare)
+    $product_id = intval($product_id);
+    $query = "SELECT COUNT(*) as count FROM order_items WHERE product_id = $product_id";
+    $result = $connection->query($query);
+    $order_count = $result->fetch()['count'];
 
     if ($order_count > 0) {
         $_SESSION['error_message'] = 'Impossible de supprimer ce produit car il est référencé dans des commandes.';
@@ -53,7 +54,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     // Delete product
-    if (deleteProduct($pdo, $product_id)) {
+    if (deleteProduct($product_id)) {
         $_SESSION['success_message'] = 'Produit "' . htmlspecialchars($product['name']) . '" supprimé avec succès.';
     } else {
         $_SESSION['error_message'] = 'Erreur lors de la suppression du produit.';

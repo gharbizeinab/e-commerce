@@ -27,9 +27,9 @@ if (!$order_id) {
 }
 
 // Get order data (only for current user)
-$stmt = $pdo->prepare("SELECT * FROM orders WHERE id = ? AND user_id = ?");
+$stmt = $connection->query("SELECT * FROM orders WHERE id = ? AND user_id = ?");
 $stmt->execute([$order_id, $current_user['id']]);
-$order = $stmt->fetch();
+$order = mysqli_fetch_assoc($result);
 
 if (!$order) {
     $_SESSION['error_message'] = 'Commande non trouvée.';
@@ -38,12 +38,14 @@ if (!$order) {
 }
 
 // Get order items
-$stmt = $pdo->prepare("SELECT oi.*, p.image 
+$stmt = $connection->query("SELECT oi.*, p.image 
                       FROM order_items oi 
                       LEFT JOIN products p ON oi.product_id = p.id
-                      WHERE oi.order_id = ?");
-$stmt->execute([$order_id]);
-$order_items = $stmt->fetchAll();
+                      WHERE oi.order_id = '$order_id'");
+$order_items = array();
+while ($row = mysqli_fetch_assoc($result)) {
+    $order_items[] = $row;
+}
 ?>
 
 <!DOCTYPE html>

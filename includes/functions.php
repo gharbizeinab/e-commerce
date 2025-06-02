@@ -1,11 +1,10 @@
 <?php
 /**
- * Utility Functions
- * Common functions used throughout the application
+ * Fonctions simples pour débutants
  */
 
 /**
- * Sanitize input data
+ * Fonction simple pour nettoyer les données
  */
 function sanitizeInput($data) {
     $data = trim($data);
@@ -15,209 +14,197 @@ function sanitizeInput($data) {
 }
 
 /**
- * Validate email format
+ * Fonction simple pour valider un email
  */
 function isValidEmail($email) {
     return filter_var($email, FILTER_VALIDATE_EMAIL);
 }
 
 /**
- * Hash password
+ * Fonction simple pour hasher un mot de passe
  */
 function hashPassword($password) {
     return password_hash($password, PASSWORD_DEFAULT);
 }
 
 /**
- * Verify password
+ * Fonction simple pour vérifier un mot de passe
  */
 function verifyPassword($password, $hash) {
     return password_verify($password, $hash);
 }
 
 /**
- * Format price for display in Tunisian Dinars
+ * Fonction simple pour formater les prix en TND
  */
 function formatPrice($price) {
     return number_format($price, 3, ',', ' ') . ' TND';
 }
 
 /**
- * Get all categories
+ * Fonction simple pour rediriger
  */
-function getCategories($pdo) {
-    $stmt = $pdo->query("SELECT * FROM categories ORDER BY name");
-    return $stmt->fetchAll();
+function redirect($url) {
+    header("Location: " . $url);
+    exit();
 }
 
 /**
- * Get products by category
+ * Fonction simple pour obtenir toutes les catégories
  */
-function getProductsByCategory($pdo, $category_id = null) {
+function getCategories() {
+    global $connection;
+    $sql = "SELECT * FROM categories ORDER BY name";
+    $result = executeQuery($sql);
+
+    $categories = array();
+    while ($row = mysqli_fetch_assoc($result)) {
+        $categories[] = $row;
+    }
+    return $categories;
+}
+
+/**
+ * Fonction simple pour obtenir les produits par catégorie
+ */
+function getProductsByCategory($category_id = null) {
+    global $connection;
+
     if ($category_id) {
-        $stmt = $pdo->prepare("SELECT p.*, c.name as category_name FROM products p 
-                              LEFT JOIN categories c ON p.category_id = c.id 
-                              WHERE p.category_id = ? ORDER BY p.name");
-        $stmt->execute([$category_id]);
+        $category_id = cleanInput($category_id);
+        $sql = "SELECT p.*, c.name as category_name FROM products p
+                LEFT JOIN categories c ON p.category_id = c.id
+                WHERE p.category_id = '$category_id' ORDER BY p.name";
     } else {
-        $stmt = $pdo->query("SELECT p.*, c.name as category_name FROM products p 
-                            LEFT JOIN categories c ON p.category_id = c.id 
-                            ORDER BY p.name");
-    }
-    return $stmt->fetchAll();
-}
-
-/**
- * Get single product by ID
- */
-function getProductById($pdo, $id) {
-    $stmt = $pdo->prepare("SELECT p.*, c.name as category_name FROM products p 
-                          LEFT JOIN categories c ON p.category_id = c.id 
-                          WHERE p.id = ?");
-    $stmt->execute([$id]);
-    return $stmt->fetch();
-}
-
-/**
- * Get user by email
- */
-function getUserByEmail($pdo, $email) {
-    $stmt = $pdo->prepare("SELECT * FROM users WHERE email = ?");
-    $stmt->execute([$email]);
-    return $stmt->fetch();
-}
-
-/**
- * Get user by username
- */
-function getUserByUsername($pdo, $username) {
-    $stmt = $pdo->prepare("SELECT * FROM users WHERE username = ?");
-    $stmt->execute([$username]);
-    return $stmt->fetch();
-}
-
-/**
- * Create new user
- */
-function createUser($pdo, $data) {
-    $stmt = $pdo->prepare("INSERT INTO users (username, email, password, full_name, phone, address, role) 
-                          VALUES (?, ?, ?, ?, ?, ?, ?)");
-    return $stmt->execute([
-        $data['username'],
-        $data['email'],
-        $data['password'],
-        $data['full_name'],
-        $data['phone'] ?? null,
-        $data['address'] ?? null,
-        $data['role'] ?? 'client'
-    ]);
-}
-
-/**
- * Update user profile
- */
-function updateUser($pdo, $user_id, $data) {
-    $stmt = $pdo->prepare("UPDATE users SET full_name = ?, phone = ?, address = ?, updated_at = NOW() 
-                          WHERE id = ?");
-    return $stmt->execute([
-        $data['full_name'],
-        $data['phone'],
-        $data['address'],
-        $user_id
-    ]);
-}
-
-/**
- * Add new product
- */
-function addProduct($pdo, $data) {
-    $stmt = $pdo->prepare("INSERT INTO products (name, description, price, category_id, image, stock_quantity, characteristics) 
-                          VALUES (?, ?, ?, ?, ?, ?, ?)");
-    return $stmt->execute([
-        $data['name'],
-        $data['description'],
-        $data['price'],
-        $data['category_id'],
-        $data['image'],
-        $data['stock_quantity'],
-        $data['characteristics']
-    ]);
-}
-
-/**
- * Update product
- */
-function updateProduct($pdo, $product_id, $data) {
-    $stmt = $pdo->prepare("UPDATE products SET name = ?, description = ?, price = ?, category_id = ?, 
-                          image = ?, stock_quantity = ?, characteristics = ?, updated_at = NOW() 
-                          WHERE id = ?");
-    return $stmt->execute([
-        $data['name'],
-        $data['description'],
-        $data['price'],
-        $data['category_id'],
-        $data['image'],
-        $data['stock_quantity'],
-        $data['characteristics'],
-        $product_id
-    ]);
-}
-
-/**
- * Delete product
- */
-function deleteProduct($pdo, $product_id) {
-    $stmt = $pdo->prepare("DELETE FROM products WHERE id = ?");
-    return $stmt->execute([$product_id]);
-}
-
-/**
- * Upload image file
- */
-function uploadImage($file, $upload_dir = 'assets/images/') {
-    if (!isset($file['error']) || is_array($file['error'])) {
-        return false;
+        $sql = "SELECT p.*, c.name as category_name FROM products p
+                LEFT JOIN categories c ON p.category_id = c.id
+                ORDER BY p.name";
     }
 
-    // Check upload errors
-    switch ($file['error']) {
-        case UPLOAD_ERR_OK:
-            break;
-        case UPLOAD_ERR_NO_FILE:
-            return false;
-        case UPLOAD_ERR_INI_SIZE:
-        case UPLOAD_ERR_FORM_SIZE:
-            return false;
-        default:
-            return false;
+    $result = executeQuery($sql);
+    $products = array();
+    while ($row = mysqli_fetch_assoc($result)) {
+        $products[] = $row;
     }
-
-    // Check file size (max 5MB)
-    if ($file['size'] > 5000000) {
-        return false;
-    }
-
-    // Check file type
-    $allowed_types = ['image/jpeg', 'image/png', 'image/gif'];
-    if (!in_array($file['type'], $allowed_types)) {
-        return false;
-    }
-
-    // Generate unique filename
-    $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
-    $filename = uniqid() . '.' . $extension;
-    $filepath = $upload_dir . $filename;
-
-    // Create directory if it doesn't exist
-    if (!is_dir($upload_dir)) {
-        mkdir($upload_dir, 0755, true);
-    }
-
-    // Move uploaded file
-    if (move_uploaded_file($file['tmp_name'], $filepath)) {
-        return $filename;
-    }
-
-    return false;
+    return $products;
 }
+
+/**
+ * Fonction simple pour obtenir un produit par ID
+ */
+function getProductById($id) {
+    global $connection;
+    $id = cleanInput($id);
+    $sql = "SELECT p.*, c.name as category_name FROM products p
+            LEFT JOIN categories c ON p.category_id = c.id
+            WHERE p.id = '$id'";
+    $result = executeQuery($sql);
+
+    if (mysqli_num_rows($result) > 0) {
+        return mysqli_fetch_assoc($result);
+    }
+    return null;
+}
+
+/**
+ * Fonction simple pour obtenir un utilisateur par email
+ */
+function getUserByEmail($email) {
+    global $connection;
+    $email = cleanInput($email);
+    $sql = "SELECT * FROM users WHERE email = '$email'";
+    $result = executeQuery($sql);
+
+    if (mysqli_num_rows($result) > 0) {
+        return mysqli_fetch_assoc($result);
+    }
+    return null;
+}
+
+
+
+/**
+ * Fonction simple pour créer un nouvel utilisateur
+ */
+function createUser($data) {
+    global $connection;
+
+    $username = cleanInput($data['username']);
+    $email = cleanInput($data['email']);
+    $password = cleanInput($data['password']);
+    $full_name = cleanInput($data['full_name']);
+    $phone = isset($data['phone']) ? cleanInput($data['phone']) : '';
+    $address = isset($data['address']) ? cleanInput($data['address']) : '';
+    $role = isset($data['role']) ? cleanInput($data['role']) : 'client';
+
+    $sql = "INSERT INTO users (username, email, password, full_name, phone, address, role)
+            VALUES ('$username', '$email', '$password', '$full_name', '$phone', '$address', '$role')";
+
+    $result = mysqli_query($connection, $sql);
+    return $result;
+}
+
+/**
+ * Fonction simple pour ajouter un produit
+ */
+function addProduct($data) {
+    global $connection;
+
+    $name = cleanInput($data['name']);
+    $description = cleanInput($data['description']);
+    $price = cleanInput($data['price']);
+    $category_id = cleanInput($data['category_id']);
+    $image = cleanInput($data['image']);
+    $stock_quantity = cleanInput($data['stock_quantity']);
+    $characteristics = isset($data['characteristics']) ? cleanInput($data['characteristics']) : '';
+
+    $sql = "INSERT INTO products (name, description, price, category_id, image, stock_quantity, characteristics)
+            VALUES ('$name', '$description', '$price', '$category_id', '$image', '$stock_quantity', '$characteristics')";
+
+    $result = mysqli_query($connection, $sql);
+    return $result;
+}
+
+/**
+ * Fonction simple pour mettre à jour un produit
+ */
+function updateProduct($product_id, $data) {
+    global $connection;
+
+    $product_id = cleanInput($product_id);
+    $name = cleanInput($data['name']);
+    $description = cleanInput($data['description']);
+    $price = cleanInput($data['price']);
+    $category_id = cleanInput($data['category_id']);
+    $image = cleanInput($data['image']);
+    $stock_quantity = cleanInput($data['stock_quantity']);
+    $characteristics = isset($data['characteristics']) ? cleanInput($data['characteristics']) : '';
+
+    $sql = "UPDATE products SET
+            name = '$name',
+            description = '$description',
+            price = '$price',
+            category_id = '$category_id',
+            image = '$image',
+            stock_quantity = '$stock_quantity',
+            characteristics = '$characteristics',
+            updated_at = NOW()
+            WHERE id = '$product_id'";
+
+    $result = mysqli_query($connection, $sql);
+    return $result;
+}
+
+/**
+ * Fonction simple pour supprimer un produit
+ */
+function deleteProduct($product_id) {
+    global $connection;
+    $product_id = cleanInput($product_id);
+    $sql = "DELETE FROM products WHERE id = '$product_id'";
+    $result = mysqli_query($connection, $sql);
+    return $result;
+}
+
+
 ?>

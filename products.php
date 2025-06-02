@@ -10,37 +10,38 @@ require_once 'includes/functions.php';
 
 $page_title = 'Nos Produits - La Beauté Bio';
 
-// Get filter parameters
+// La session est déjà démarrée dans config/session.php
+
+// Récupérer les paramètres de filtre
 $category_filter = isset($_GET['category']) ? (int)$_GET['category'] : null;
 $search_query = isset($_GET['search']) ? sanitizeInput($_GET['search']) : '';
 
-// Build query based on filters
+// Construire la requête SQL simple
 $sql = "SELECT p.*, c.name as category_name FROM products p
         LEFT JOIN categories c ON p.category_id = c.id
         WHERE p.is_active = 1";
-$params = [];
 
 if ($category_filter) {
-    $sql .= " AND p.category_id = ?";
-    $params[] = $category_filter;
+    $sql .= " AND p.category_id = '$category_filter'";
 }
 
 if ($search_query) {
-    $sql .= " AND (p.name LIKE ? OR p.description LIKE ? OR p.characteristics LIKE ?)";
-    $search_term = "%$search_query%";
-    $params[] = $search_term;
-    $params[] = $search_term;
-    $params[] = $search_term;
+    $sql .= " AND (p.name LIKE '%$search_query%' OR p.description LIKE '%$search_query%' OR p.characteristics LIKE '%$search_query%')";
 }
 
 $sql .= " ORDER BY p.is_featured DESC, p.name";
 
-$stmt = $pdo->prepare($sql);
-$stmt->execute($params);
-$products = $stmt->fetchAll();
+// Exécuter la requête
+$result = executeQuery($sql);
 
-// Get all categories for filter
-$categories = getCategories($pdo);
+// Récupérer tous les produits
+$products = array();
+while ($row = mysqli_fetch_assoc($result)) {
+    $products[] = $row;
+}
+
+// Récupérer toutes les catégories pour le filtre
+$categories = getCategories();
 ?>
 
 <!DOCTYPE html>

@@ -25,7 +25,7 @@ if (!$product_id) {
 }
 
 // Get product data
-$product = getProductById($pdo, $product_id);
+$product = getProductById($product_id);
 if (!$product) {
     $_SESSION['error_message'] = 'Produit non trouvé.';
     header('Location: products.php');
@@ -33,7 +33,7 @@ if (!$product) {
 }
 
 // Get categories
-$categories = getCategories($pdo);
+$categories = getCategories();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Validate CSRF token
@@ -96,12 +96,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'characteristics' => $characteristics
             ];
 
-            if (updateProduct($pdo, $product_id, $product_data)) {
+            if (updateProduct($product_id, $product_data)) {
                 $success = true;
                 $_SESSION['success_message'] = 'Produit modifié avec succès !';
                 
                 // Refresh product data
-                $product = getProductById($pdo, $product_id);
+                $product = getProductById($product_id);
             } else {
                 $errors[] = 'Erreur lors de la modification du produit. Veuillez réessayer.';
             }

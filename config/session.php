@@ -1,45 +1,36 @@
 <?php
 /**
- * Session Management
- * Handles session initialization and security
+ * Gestion des sessions simple pour débutants
  */
 
-// Session security settings - MUST be set BEFORE session_start()
+// Démarrer la session si elle n'est pas déjà démarrée
 if (session_status() == PHP_SESSION_NONE) {
-    // Configure session settings before starting
-    ini_set('session.cookie_httponly', 1);
-    ini_set('session.use_only_cookies', 1);
-    ini_set('session.cookie_secure', 0); // Set to 1 if using HTTPS
-    ini_set('session.cookie_lifetime', 0); // Session cookie expires when browser closes
-    ini_set('session.gc_maxlifetime', 3600); // Session expires after 1 hour of inactivity
-
-    // Start the session
     session_start();
 }
 
 /**
- * Check if user is logged in
+ * Fonction simple pour vérifier si l'utilisateur est connecté
  */
 function isLoggedIn() {
     return isset($_SESSION['user_id']) && !empty($_SESSION['user_id']);
 }
 
 /**
- * Check if user is admin
+ * Fonction simple pour vérifier si l'utilisateur est admin
  */
 function isAdmin() {
     return isLoggedIn() && isset($_SESSION['role']) && $_SESSION['role'] === 'admin';
 }
 
 /**
- * Check if user is client
+ * Fonction simple pour vérifier si l'utilisateur est client
  */
 function isClient() {
     return isLoggedIn() && isset($_SESSION['role']) && $_SESSION['role'] === 'client';
 }
 
 /**
- * Require login - redirect to login page if not logged in
+ * Fonction simple pour exiger une connexion
  */
 function requireLogin($redirect_to = 'login.php') {
     if (!isLoggedIn()) {
@@ -49,7 +40,7 @@ function requireLogin($redirect_to = 'login.php') {
 }
 
 /**
- * Require admin access
+ * Fonction simple pour exiger les droits admin
  */
 function requireAdmin($redirect_to = '../index.php') {
     if (!isAdmin()) {
@@ -59,7 +50,7 @@ function requireAdmin($redirect_to = '../index.php') {
 }
 
 /**
- * Login user
+ * Fonction simple pour connecter un utilisateur
  */
 function loginUser($user) {
     $_SESSION['user_id'] = $user['id'];
@@ -70,7 +61,7 @@ function loginUser($user) {
 }
 
 /**
- * Logout user
+ * Fonction simple pour déconnecter un utilisateur
  */
 function logoutUser() {
     session_unset();
@@ -78,36 +69,20 @@ function logoutUser() {
 }
 
 /**
- * Get current user info
+ * Fonction simple pour obtenir les infos de l'utilisateur actuel
  */
 function getCurrentUser() {
     if (!isLoggedIn()) {
         return null;
     }
-    
-    return [
+
+    // Retourner un tableau simple avec les infos de session
+    return array(
         'id' => $_SESSION['user_id'],
         'username' => $_SESSION['username'],
         'email' => $_SESSION['email'],
         'full_name' => $_SESSION['full_name'],
         'role' => $_SESSION['role']
-    ];
-}
-
-/**
- * Generate CSRF token
- */
-function generateCSRFToken() {
-    if (!isset($_SESSION['csrf_token'])) {
-        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
-    }
-    return $_SESSION['csrf_token'];
-}
-
-/**
- * Verify CSRF token
- */
-function verifyCSRFToken($token) {
-    return isset($_SESSION['csrf_token']) && hash_equals($_SESSION['csrf_token'], $token);
+    );
 }
 ?>

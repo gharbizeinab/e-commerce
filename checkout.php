@@ -55,38 +55,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $order_number = 'ORD-' . date('Y') . '-' . str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT);
 
                     // Create order
-                    $stmt = $pdo->prepare("INSERT INTO orders (user_id, order_number, status, total_amount, shipping_address, billing_address, payment_method, notes) 
-                                          VALUES (?, ?, 'pending', ?, ?, ?, ?, ?)");
-                    
-                    if ($stmt->execute([$current_user['id'], $order_number, $total_amount, $shipping_address, $billing_address, $payment_method, $notes])) {
-                        $order_id = $pdo->lastInsertId();
+                    $user_id = $current_user['id'];
+                    $stmt = $connection->query("INSERT INTO orders (user_id, order_number, status, total_amount, shipping_address, billing_address, payment_method, notes)
+                                          VALUES ($user_id, '$order_number', 'pending', $total_amount, '$shipping_address', '$billing_address', '$payment_method', '$notes')");
+
+                    if ($stmt) {
+                        $order_id = $connection->lastInsertId();
 
                         // Add order items
-                        $stmt_item = $pdo->prepare("INSERT INTO order_items (order_id, product_id, product_name, quantity, unit_price, total_price)
-                                                   VALUES (?, ?, ?, ?, ?, ?)");
-
                         foreach ($cart_items as $item) {
                             $total_price = $item['quantite'] * $item['prix'];
 
                             // Get product_id from database by name if not provided
                             $product_id = $item['id'] ?? null;
                             if (!$product_id || $product_id == 0) {
-                                $stmt_find = $pdo->prepare("SELECT id FROM products WHERE name = ? LIMIT 1");
-                                $stmt_find->execute([$item['nom']]);
+                                $item_name = addslashes($item['nom']);
+                                $stmt_find = $connection->query("SELECT id FROM products WHERE name = '$item_name' LIMIT 1");
                                 $product = $stmt_find->fetch();
                                 $product_id = $product ? $product['id'] : null;
                             }
 
                             // Only add item if we have a valid product_id
                             if ($product_id) {
-                                $stmt_item->execute([
-                                    $order_id,
-                                    $product_id,
-                                    $item['nom'],
-                                    $item['quantite'],
-                                    $item['prix'],
-                                    $total_price
-                                ]);
+                                $item_name_safe = addslashes($item['nom']);
+                                $quantity = $item['quantite'];
+                                $unit_price = $item['prix'];
+
+                                $stmt_item = $connection->query("INSERT INTO order_items (order_id, product_id, product_name, quantity, unit_price, total_price)
+                                                         VALUES ($order_id, $product_id, '$item_name_safe', $quantity, $unit_price, $total_price)");
                             }
                         }
 

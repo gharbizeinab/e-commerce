@@ -10,19 +10,24 @@ require_once 'includes/functions.php';
 
 $page_title = 'Nos Savons - La Beauté Bio';
 
-// Get savons category ID
-$stmt = $pdo->prepare("SELECT id FROM categories WHERE name = 'Savons' LIMIT 1");
-$stmt->execute();
-$savons_category = $stmt->fetch();
+// Récupérer l'ID de la catégorie Savons
+$sql = "SELECT id FROM categories WHERE name = 'Savons' LIMIT 1";
+$result = executeQuery($sql);
+$savons_category = mysqli_fetch_assoc($result);
 $category_id = $savons_category ? $savons_category['id'] : 1;
 
-// Get all savon products
-$stmt = $pdo->prepare("SELECT p.*, c.name as category_name FROM products p 
-                      LEFT JOIN categories c ON p.category_id = c.id 
-                      WHERE p.category_id = ? AND p.is_active = 1
-                      ORDER BY p.is_featured DESC, p.name");
-$stmt->execute([$category_id]);
-$savons = $stmt->fetchAll();
+// Récupérer tous les produits savons
+$category_id_clean = cleanInput($category_id);
+$sql = "SELECT p.*, c.name as category_name FROM products p
+        LEFT JOIN categories c ON p.category_id = c.id
+        WHERE p.category_id = '$category_id_clean' AND p.is_active = 1
+        ORDER BY p.is_featured DESC, p.name";
+$result = executeQuery($sql);
+
+$savons = array();
+while ($row = mysqli_fetch_assoc($result)) {
+    $savons[] = $row;
+}
 ?>
 
 <!DOCTYPE html>
@@ -284,11 +289,12 @@ $savons = $stmt->fetchAll();
     </div>
     <div>
         <h3>Nous parler</h3>
-        <p><i class="fas fa-phone"></i> +33 1 23 45 67 89</p>
+        <p><i class="fas fa-phone"></i> +216 71 123 456</p>
+        <p><i class="fas fa-mobile-alt"></i> +216 98 765 432</p>
     </div>
     <div>
         <h3>Nous écrire</h3>
-        <p><a href="mailto:contact@labeautebio.fr" style="color: white;"><i class="fas fa-envelope"></i> contact@labeautebio.fr</a></p>
+        <p><a href="mailto:contact@labeautebio.tn" style="color: white;"><i class="fas fa-envelope"></i> contact@labeautebio.tn</a></p>
     </div>
 </footer>
 

@@ -25,29 +25,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             try {
                 switch ($action) {
                     case 'confirm':
-                        $stmt = $pdo->prepare("UPDATE orders SET status = 'confirmed' WHERE id = ?");
-                        if ($stmt->execute([$order_id])) {
+                        $stmt = $connection->query("UPDATE orders SET status = 'confirmed' WHERE id = $order_id");
+                        if ($stmt) {
                             $_SESSION['success_message'] = 'Commande confirmée avec succès.';
                         }
                         break;
-                        
+
                     case 'decline':
-                        $stmt = $pdo->prepare("UPDATE orders SET status = 'declined' WHERE id = ?");
-                        if ($stmt->execute([$order_id])) {
+                        $stmt = $connection->query("UPDATE orders SET status = 'declined' WHERE id = $order_id");
+                        if ($stmt) {
                             $_SESSION['success_message'] = 'Commande refusée.';
                         }
                         break;
-                        
+
                     case 'ship':
-                        $stmt = $pdo->prepare("UPDATE orders SET status = 'shipped' WHERE id = ?");
-                        if ($stmt->execute([$order_id])) {
+                        $stmt = $connection->query("UPDATE orders SET status = 'shipped' WHERE id = $order_id");
+                        if ($stmt) {
                             $_SESSION['success_message'] = 'Commande marquée comme expédiée.';
                         }
                         break;
-                        
+
                     case 'deliver':
-                        $stmt = $pdo->prepare("UPDATE orders SET status = 'delivered' WHERE id = ?");
-                        if ($stmt->execute([$order_id])) {
+                        $stmt = $connection->query("UPDATE orders SET status = 'delivered' WHERE id = $order_id");
+                        if ($stmt) {
                             $_SESSION['success_message'] = 'Commande marquée comme livrée.';
                         }
                         break;
@@ -68,19 +68,14 @@ $search = $_GET['search'] ?? '';
 
 // Build query
 $where_conditions = [];
-$params = [];
 
 if ($status_filter) {
-    $where_conditions[] = "o.status = ?";
-    $params[] = $status_filter;
+    $where_conditions[] = "o.status = '$status_filter'";
 }
 
 if ($search) {
-    $where_conditions[] = "(o.order_number LIKE ? OR u.full_name LIKE ? OR u.email LIKE ?)";
     $search_param = "%{$search}%";
-    $params[] = $search_param;
-    $params[] = $search_param;
-    $params[] = $search_param;
+    $where_conditions[] = "(o.order_number LIKE '$search_param' OR u.full_name LIKE '$search_param' OR u.email LIKE '$search_param')";
 }
 
 $where_clause = !empty($where_conditions) ? 'WHERE ' . implode(' AND ', $where_conditions) : '';
@@ -88,16 +83,18 @@ $where_clause = !empty($where_conditions) ? 'WHERE ' . implode(' AND ', $where_c
 // Get orders with user information
 $sql = "SELECT o.*, u.full_name, u.email, u.phone,
                COUNT(oi.id) as item_count
-        FROM orders o 
-        LEFT JOIN users u ON o.user_id = u.id 
+        FROM orders o
+        LEFT JOIN users u ON o.user_id = u.id
         LEFT JOIN order_items oi ON o.id = oi.order_id
         {$where_clause}
         GROUP BY o.id
         ORDER BY o.created_at DESC";
 
-$stmt = $pdo->prepare($sql);
-$stmt->execute($params);
-$orders = $stmt->fetchAll();
+$stmt = $connection->query($sql);
+$orders = array();
+while ($row = mysqli_fetch_assoc($result)) {
+    $orders[] = $row;
+}
 
 // Get order statistics
 $stats_sql = "SELECT 
@@ -109,7 +106,7 @@ $stats_sql = "SELECT
                 COUNT(CASE WHEN status = 'delivered' THEN 1 END) as delivered_orders,
                 SUM(CASE WHEN status IN ('confirmed', 'shipped', 'delivered') THEN total_amount ELSE 0 END) as total_revenue
               FROM orders";
-$stats = $pdo->query($stats_sql)->fetch();
+$stats = $connection->query($stats_sql)->fetch();
 ?>
 
 <?php include '../includes/admin_header.php'; ?>

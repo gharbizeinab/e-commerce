@@ -1,32 +1,46 @@
 <?php
 /**
- * Database Configuration
- * Configuration file for database connection
+ * Configuration de base de données simple pour débutants
  */
 
-// Database configuration
-define('DB_HOST', 'localhost');
-define('DB_NAME', 'cosmetics_ecommerce');
-define('DB_USER', 'root');
-define('DB_PASS', '');
+// Paramètres de connexion
+$host = "localhost";
+$username = "root";
+$password = "";
+$database = "cosmetics_ecommerce";
 
-// Create database connection
-function getDBConnection() {
-    try {
-        $dsn = "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=utf8mb4";
-        $options = [
-            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-            PDO::ATTR_EMULATE_PREPARES => false,
-        ];
-        
-        $pdo = new PDO($dsn, DB_USER, DB_PASS, $options);
-        return $pdo;
-    } catch (PDOException $e) {
-        die("Connection failed: " . $e->getMessage());
-    }
+// Connexion à la base de données avec mysqli (simple pour débutants)
+$connection = mysqli_connect($host, $username, $password, $database);
+
+// Vérifier la connexion
+if (!$connection) {
+    die("Erreur de connexion : " . mysqli_connect_error());
 }
 
-// Global database connection
-$pdo = getDBConnection();
+// Définir l'encodage
+mysqli_set_charset($connection, "utf8");
+
+/**
+ * Fonction simple pour nettoyer les données (sécurité de base)
+ */
+function cleanInput($data) {
+    global $connection;
+    $data = trim($data);
+    $data = stripslashes($data);
+    $data = htmlspecialchars($data);
+    $data = mysqli_real_escape_string($connection, $data);
+    return $data;
+}
+
+/**
+ * Fonction simple pour exécuter une requête
+ */
+function executeQuery($sql) {
+    global $connection;
+    $result = mysqli_query($connection, $sql);
+    if (!$result) {
+        die("Erreur SQL : " . mysqli_error($connection));
+    }
+    return $result;
+}
 ?>

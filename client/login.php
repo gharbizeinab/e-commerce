@@ -46,9 +46,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if (empty($errors)) {
             // Try to find user by email or username
-            $user = getUserByEmail($pdo, $login);
+            $user = getUserByEmail($login);
             if (!$user) {
-                $user = getUserByUsername($pdo, $login);
+                $user = getUserByUsername($connection, $login);
             }
 
             if ($user && verifyPassword($password, $user['password'])) {
