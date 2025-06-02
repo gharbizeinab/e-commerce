@@ -12,49 +12,7 @@ $page_title = 'Contact - La Beauté Bio';
 $success = false;
 $errors = [];
 
-// Handle contact form submission
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (!verifyCSRFToken($_POST['csrf_token'] ?? '')) {
-        $errors[] = 'Token de sécurité invalide.';
-    } else {
-        $name = sanitizeInput($_POST['name'] ?? '');
-        $email = sanitizeInput($_POST['email'] ?? '');
-        $subject = sanitizeInput($_POST['subject'] ?? '');
-        $message = sanitizeInput($_POST['message'] ?? '');
-
-        // Validation
-        if (empty($name)) {
-            $errors[] = 'Le nom est requis.';
-        }
-        if (empty($email)) {
-            $errors[] = 'L\'email est requis.';
-        } elseif (!isValidEmail($email)) {
-            $errors[] = 'L\'email n\'est pas valide.';
-        }
-        if (empty($subject)) {
-            $errors[] = 'Le sujet est requis.';
-        }
-        if (empty($message)) {
-            $errors[] = 'Le message est requis.';
-        }
-
-        // Save message if no errors
-        if (empty($errors)) {
-            try {
-                $stmt = $connection->query("INSERT INTO contact_messages (name, email, subject, message) VALUES ('$name', '$email', '$subject', '$message')"); if ($stmt) {
-                    $success = true;
-                    $_SESSION['success_message'] = 'Votre message a été envoyé avec succès ! Nous vous répondrons dans les plus brefs délais.';
-                    // Clear form data
-                    $_POST = [];
-                } else {
-                    $errors[] = 'Erreur lors de l\'envoi du message. Veuillez réessayer.';
-                }
-            } catch (Exception $e) {
-                $errors[] = 'Erreur lors de l\'envoi du message. Veuillez réessayer.';
-            }
-        }
-    }
-}
+// Page de contact simple - Affichage des coordonnées uniquement
 ?>
 
 <!DOCTYPE html>
@@ -87,9 +45,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         .contact-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 40px;
+            display: flex;
+            justify-content: center;
             margin-top: 30px;
         }
         
@@ -97,6 +54,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             background: #f8f9fa;
             padding: 30px;
             border-radius: 15px;
+            max-width: 600px;
+            width: 100%;
         }
         
         .contact-info h3 {
@@ -121,45 +80,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             width: 30px;
         }
         
-        .contact-form {
-            background: white;
-        }
-        
-        .contact-form h3 {
-            color: #7c943f;
-            margin-bottom: 20px;
-        }
-        
-        .form-control {
-            border: 2px solid #e9ecef;
-            border-radius: 10px;
-            padding: 12px 15px;
-            margin-bottom: 20px;
-            transition: border-color 0.3s;
-        }
-        
-        .form-control:focus {
-            border-color: #7c943f;
-            box-shadow: 0 0 0 0.2rem rgba(124, 148, 63, 0.25);
-        }
-        
-        .btn-contact {
-            background-color: #7c943f;
-            color: white;
-            border: none;
-            padding: 12px 30px;
-            font-weight: bold;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: background 0.3s;
-            text-decoration: none;
-            display: inline-block;
-        }
-        
-        .btn-contact:hover {
-            background-color: #5d722e;
-            color: white;
-        }
+
         
         .map-section {
             text-align: center;
@@ -239,29 +160,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <div class="contact-container">
     <div class="contact-section">
         <h1 style="text-align: center; color: #7c943f; margin-bottom: 20px;">
-            <i class="fas fa-envelope"></i> Contactez-nous
+            Contactez-nous
         </h1>
         <p style="text-align: center; color: #666; font-size: 1.1em;">
-            Une question, une suggestion, un mot doux ? Nous sommes là pour vous écouter !
+            Une question, besoin d'informations ? Contactez-nous directement !
         </p>
 
-        <?php if ($success): ?>
-            <div class="alert alert-success">
-                <i class="fas fa-check-circle"></i> Votre message a été envoyé avec succès ! 
-                Nous vous répondrons dans les plus brefs délais.
-            </div>
-        <?php endif; ?>
 
-        <?php if (!empty($errors)): ?>
-            <div class="alert alert-danger">
-                <i class="fas fa-exclamation-circle"></i>
-                <ul class="mb-0">
-                    <?php foreach ($errors as $error): ?>
-                        <li><?php echo htmlspecialchars($error); ?></li>
-                    <?php endforeach; ?>
-                </ul>
-            </div>
-        <?php endif; ?>
 
         <div class="contact-grid">
             <!-- Contact Information -->
@@ -308,34 +213,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
             </div>
 
-            <!-- Contact Form -->
-            <div class="contact-form">
-                <h3><i class="fas fa-paper-plane"></i> Envoyez-nous un message</h3>
-                
-                <form method="POST" class="needs-validation" novalidate>
-                    <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">
-                    
-                    <div class="row">
-                        <div class="col-md-6">
-                            <input type="text" class="form-control" name="name" placeholder="Votre nom *" 
-                                   value="<?php echo htmlspecialchars($_POST['name'] ?? ''); ?>" required>
-                        </div>
-                        <div class="col-md-6">
-                            <input type="email" class="form-control" name="email" placeholder="Votre email *" 
-                                   value="<?php echo htmlspecialchars($_POST['email'] ?? ''); ?>" required>
-                        </div>
-                    </div>
-                    
-                    <input type="text" class="form-control" name="subject" placeholder="Sujet de votre message *" 
-                           value="<?php echo htmlspecialchars($_POST['subject'] ?? ''); ?>" required>
-                    
-                    <textarea class="form-control" name="message" rows="6" placeholder="Votre message *" required><?php echo htmlspecialchars($_POST['message'] ?? ''); ?></textarea>
-                    
-                    <button type="submit" class="btn-contact">
-                        <i class="fas fa-paper-plane"></i> Envoyer le message
-                    </button>
-                </form>
-            </div>
+
         </div>
     </div>
 
