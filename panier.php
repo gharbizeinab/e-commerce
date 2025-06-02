@@ -26,12 +26,37 @@ $page_title = 'Panier - La Beauté Bio';
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
     <style>
+        /* User Menu */
+        .user-menu {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+
+        .user-menu a {
+            background-color: rgba(255,255,255,0.9);
+            color: #7c943f;
+            padding: 8px 15px;
+            border-radius: 20px;
+            text-decoration: none;
+            margin: 0 5px;
+            font-weight: bold;
+            transition: all 0.3s;
+            display: inline-block;
+        }
+
+        .user-menu a:hover {
+            background-color: #7c943f;
+            color: white;
+        }
+
         .cart-container {
             max-width: 1000px;
             margin: 0 auto;
             padding: 40px 20px;
         }
-        
+
         .cart-table {
             background: white;
             border-radius: 15px;
@@ -39,24 +64,25 @@ $page_title = 'Panier - La Beauté Bio';
             overflow: hidden;
             margin-bottom: 30px;
         }
-        
+
         .cart-table table {
             width: 100%;
             margin: 0;
         }
-        
+
         .cart-table th {
             background-color: #7c943f;
             color: white;
             padding: 15px;
             font-weight: bold;
         }
-        
+
         .cart-table td {
             padding: 15px;
             border-bottom: 1px solid #eee;
+            vertical-align: middle;
         }
-        
+
         .cart-total {
             background: white;
             border-radius: 15px;
@@ -64,7 +90,7 @@ $page_title = 'Panier - La Beauté Bio';
             padding: 30px;
             text-align: center;
         }
-        
+
         .btn-cart {
             background-color: #7c943f;
             color: white;
@@ -76,30 +102,58 @@ $page_title = 'Panier - La Beauté Bio';
             display: inline-block;
             margin: 5px;
             transition: background 0.3s;
+            font-size: 14px;
         }
-        
+
         .btn-cart:hover {
             background-color: #5d722e;
             color: white;
         }
-        
+
+        .btn-cart.btn-sm {
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+
         .btn-danger {
             background-color: #dc3545;
         }
-        
+
         .btn-danger:hover {
             background-color: #c82333;
         }
-        
+
         .empty-cart {
             text-align: center;
             padding: 60px 20px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.08);
         }
-        
+
         .empty-cart i {
             font-size: 4rem;
             color: #ccc;
             margin-bottom: 20px;
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .cart-table {
+                overflow-x: auto;
+            }
+
+            .cart-table table {
+                min-width: 600px;
+            }
+
+            .user-menu {
+                position: relative;
+                top: auto;
+                right: auto;
+                text-align: center;
+                margin-bottom: 20px;
+            }
         }
     </style>
 </head>
@@ -185,11 +239,12 @@ $page_title = 'Panier - La Beauté Bio';
     </div>
     <div>
         <h3>Nous parler</h3>
-        <p><i class="fas fa-phone"></i> +33 1 23 45 67 89</p>
+        <p><i class="fas fa-phone"></i> +216 71 123 456</p>
+        <p><i class="fas fa-mobile-alt"></i> +216 98 765 432</p>
     </div>
     <div>
         <h3>Nous écrire</h3>
-        <p><a href="mailto:contact@labeautebio.fr" style="color: white;"><i class="fas fa-envelope"></i> contact@labeautebio.fr</a></p>
+        <p><a href="mailto:contact@labeautebio.tn" style="color: white;"><i class="fas fa-envelope"></i> contact@labeautebio.tn</a></p>
     </div>
 </footer>
 
@@ -203,108 +258,203 @@ $page_title = 'Panier - La Beauté Bio';
 <script>
 // Enhanced cart display function
 function afficherPanier() {
-    let panier = JSON.parse(localStorage.getItem('panier')) || [];
-    let cartContent = document.getElementById('cart-content');
-    let emptyCart = document.getElementById('empty-cart');
-    let cartTotal = document.getElementById('cart-total');
-    
-    if (panier.length === 0) {
-        cartContent.innerHTML = '';
-        emptyCart.style.display = 'block';
-        cartTotal.style.display = 'none';
-        return;
-    }
-    
-    emptyCart.style.display = 'none';
-    cartTotal.style.display = 'block';
-    
-    let tableHTML = `
-        <div class="cart-table">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Produit</th>
-                        <th>Prix unitaire</th>
-                        <th>Quantité</th>
-                        <th>Total</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-    `;
-    
-    let total = 0;
-    panier.forEach((item, i) => {
-        const itemTotal = item.quantite * item.prix;
-        total += itemTotal;
-        
-        tableHTML += `
-            <tr>
-                <td><strong>${item.nom}</strong></td>
-                <td>${item.prix.toFixed(2)} €</td>
-                <td>
-                    <button class="btn-cart btn-sm" onclick="updateQuantity(${i}, -1)">-</button>
-                    <span style="margin: 0 10px; font-weight: bold;">${item.quantite}</span>
-                    <button class="btn-cart btn-sm" onclick="updateQuantity(${i}, 1)">+</button>
-                </td>
-                <td><strong>${itemTotal.toFixed(2)} €</strong></td>
-                <td>
-                    <button class="btn-cart btn-danger btn-sm" onclick="retirerDuPanier(${i})">
-                        <i class="fas fa-trash"></i> Retirer
-                    </button>
-                </td>
-            </tr>
+    try {
+        let panier = JSON.parse(localStorage.getItem('panier')) || [];
+        let cartContent = document.getElementById('cart-content');
+        let emptyCart = document.getElementById('empty-cart');
+        let cartTotal = document.getElementById('cart-total');
+
+        // Check if elements exist
+        if (!cartContent || !emptyCart || !cartTotal) {
+            console.error('Cart elements not found');
+            return;
+        }
+
+        if (panier.length === 0) {
+            cartContent.innerHTML = '';
+            emptyCart.style.display = 'block';
+            cartTotal.style.display = 'none';
+            return;
+        }
+
+        emptyCart.style.display = 'none';
+        cartTotal.style.display = 'block';
+
+        let tableHTML = `
+            <div class="cart-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Produit</th>
+                            <th>Prix unitaire</th>
+                            <th>Quantité</th>
+                            <th>Total</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
         `;
-    });
-    
-    tableHTML += `
-                </tbody>
-            </table>
-        </div>
-    `;
-    
-    cartContent.innerHTML = tableHTML;
-    document.getElementById('total-amount').textContent = total.toFixed(2) + ' €';
+
+        let total = 0;
+        panier.forEach((item, i) => {
+            // Validate item data
+            if (!item.nom || !item.prix || !item.quantite) {
+                console.warn('Invalid cart item:', item);
+                return;
+            }
+
+            const itemTotal = item.quantite * item.prix;
+            total += itemTotal;
+
+            tableHTML += `
+                <tr>
+                    <td><strong>${escapeHtml(item.nom)}</strong></td>
+                    <td>${parseFloat(item.prix).toFixed(3)} TND</td>
+                    <td>
+                        <button class="btn-cart btn-sm" onclick="updateQuantity(${i}, -1)" title="Diminuer la quantité">-</button>
+                        <span style="margin: 0 10px; font-weight: bold;">${item.quantite}</span>
+                        <button class="btn-cart btn-sm" onclick="updateQuantity(${i}, 1)" title="Augmenter la quantité">+</button>
+                    </td>
+                    <td><strong>${itemTotal.toFixed(3)} TND</strong></td>
+                    <td>
+                        <button class="btn-cart btn-danger btn-sm" onclick="retirerDuPanier(${i})" title="Retirer du panier">
+                            <i class="fas fa-trash"></i> Retirer
+                        </button>
+                    </td>
+                </tr>
+            `;
+        });
+
+        tableHTML += `
+                    </tbody>
+                </table>
+            </div>
+        `;
+
+        cartContent.innerHTML = tableHTML;
+
+        // Update total amount
+        const totalElement = document.getElementById('total-amount');
+        if (totalElement) {
+            totalElement.textContent = total.toFixed(3) + ' TND';
+        }
+
+    } catch (error) {
+        console.error('Error displaying cart:', error);
+        // Show error message to user
+        const cartContent = document.getElementById('cart-content');
+        if (cartContent) {
+            cartContent.innerHTML = `
+                <div style="text-align: center; padding: 40px; background: white; border-radius: 15px; box-shadow: 0 8px 16px rgba(0,0,0,0.08);">
+                    <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: #dc3545; margin-bottom: 20px;"></i>
+                    <h3>Erreur lors du chargement du panier</h3>
+                    <p>Une erreur s'est produite. Veuillez rafraîchir la page.</p>
+                    <button class="btn-cart" onclick="location.reload()">Rafraîchir</button>
+                </div>
+            `;
+        }
+    }
+}
+
+// Utility function to escape HTML
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
 }
 
 // Update quantity function
 function updateQuantity(index, change) {
-    let panier = JSON.parse(localStorage.getItem('panier')) || [];
-    if (panier[index]) {
-        panier[index].quantite += change;
-        if (panier[index].quantite <= 0) {
-            panier.splice(index, 1);
+    try {
+        let panier = JSON.parse(localStorage.getItem('panier')) || [];
+        if (panier[index]) {
+            panier[index].quantite += change;
+            if (panier[index].quantite <= 0) {
+                panier.splice(index, 1);
+            }
+            localStorage.setItem('panier', JSON.stringify(panier));
+            afficherPanier();
         }
-        localStorage.setItem('panier', JSON.stringify(panier));
-        afficherPanier();
+    } catch (error) {
+        console.error('Error updating quantity:', error);
+        alert('Erreur lors de la mise à jour de la quantité');
     }
 }
 
 // Enhanced remove function
 function retirerDuPanier(index) {
-    let panier = JSON.parse(localStorage.getItem('panier')) || [];
-    if (confirm('Êtes-vous sûr de vouloir retirer cet article du panier ?')) {
-        panier.splice(index, 1);
-        localStorage.setItem('panier', JSON.stringify(panier));
-        afficherPanier();
+    try {
+        let panier = JSON.parse(localStorage.getItem('panier')) || [];
+        if (confirm('Êtes-vous sûr de vouloir retirer cet article du panier ?')) {
+            panier.splice(index, 1);
+            localStorage.setItem('panier', JSON.stringify(panier));
+            afficherPanier();
+        }
+    } catch (error) {
+        console.error('Error removing item:', error);
+        alert('Erreur lors de la suppression de l\'article');
     }
 }
 
 // Checkout function
 function proceedToCheckout() {
-    let panier = JSON.parse(localStorage.getItem('panier')) || [];
-    if (panier.length === 0) {
-        alert('Votre panier est vide !');
-        return;
-    }
+    try {
+        let panier = JSON.parse(localStorage.getItem('panier')) || [];
+        if (panier.length === 0) {
+            alert('Votre panier est vide !');
+            return;
+        }
 
-    // Redirect to checkout page
-    window.location.href = 'checkout.php';
+        // Validate cart items before checkout
+        let validItems = panier.filter(item => item.nom && item.prix && item.quantite > 0);
+        if (validItems.length !== panier.length) {
+            console.warn('Some invalid items found in cart, cleaning up...');
+            localStorage.setItem('panier', JSON.stringify(validItems));
+            afficherPanier();
+        }
+
+        if (validItems.length === 0) {
+            alert('Votre panier ne contient aucun article valide !');
+            return;
+        }
+
+        // Redirect to checkout page
+        window.location.href = 'checkout.php';
+    } catch (error) {
+        console.error('Error proceeding to checkout:', error);
+        alert('Erreur lors de la redirection vers le paiement');
+    }
+}
+
+// Clear cart function
+function clearCart() {
+    if (confirm('Êtes-vous sûr de vouloir vider complètement votre panier ?')) {
+        localStorage.removeItem('panier');
+        afficherPanier();
+    }
 }
 
 // Load cart on page load
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('Cart page loaded');
     afficherPanier();
+
+    // Add clear cart button if cart has items
+    setTimeout(() => {
+        const panier = JSON.parse(localStorage.getItem('panier')) || [];
+        if (panier.length > 0) {
+            const cartTotal = document.getElementById('cart-total');
+            if (cartTotal) {
+                const clearButton = document.createElement('button');
+                clearButton.className = 'btn-cart';
+                clearButton.style.backgroundColor = '#6c757d';
+                clearButton.style.marginTop = '10px';
+                clearButton.innerHTML = '<i class="fas fa-trash-alt"></i> Vider le panier';
+                clearButton.onclick = clearCart;
+                cartTotal.appendChild(clearButton);
+            }
+        }
+    }, 100);
 });
 </script>
 

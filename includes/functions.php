@@ -36,10 +36,10 @@ function verifyPassword($password, $hash) {
 }
 
 /**
- * Format price for display
+ * Format price for display in Tunisian Dinars
  */
 function formatPrice($price) {
-    return number_format($price, 2, ',', ' ') . ' €';
+    return number_format($price, 3, ',', ' ') . ' TND';
 }
 
 /**

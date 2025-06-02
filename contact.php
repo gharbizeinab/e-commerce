@@ -273,8 +273,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <i class="fas fa-map-marker-alt"></i>
                     <div>
                         <strong>Adresse</strong><br>
-                        123 Rue de la Beauté<br>
-                        75001 Paris, France
+                        Avenue Habib Bourguiba<br>
+                        Centre Ville, 1001 Tunis<br>
+                        Tunisie
                     </div>
                 </div>
                 
@@ -282,8 +283,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <i class="fas fa-phone"></i>
                     <div>
                         <strong>Téléphone</strong><br>
-                        +33 1 23 45 67 89<br>
-                        <small>Lun-Ven: 9h-18h</small>
+                        +216 71 123 456<br>
+                        +216 98 765 432<br>
+                        <small>Lun-Ven: 8h30-17h30</small>
                     </div>
                 </div>
                 
@@ -291,7 +293,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <i class="fas fa-envelope"></i>
                     <div>
                         <strong>Email</strong><br>
-                        contact@labeautebio.fr<br>
+                        contact@labeautebio.tn<br>
                         <small>Réponse sous 24h</small>
                     </div>
                 </div>
@@ -300,8 +302,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <i class="fas fa-clock"></i>
                     <div>
                         <strong>Horaires</strong><br>
-                        Lundi - Vendredi: 9h - 18h<br>
-                        Samedi: 10h - 16h<br>
+                        Lundi - Vendredi: 8h30 - 17h30<br>
+                        Samedi: 9h00 - 16h00<br>
                         Dimanche: Fermé
                     </div>
                 </div>

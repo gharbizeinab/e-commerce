@@ -158,23 +158,23 @@ $page_title = 'À propos - La Beauté Bio';
     <div class="about-section">
         <h2><i class="fas fa-leaf"></i> Notre Histoire</h2>
         <p>
-            <strong>La Beauté Bio</strong> est née d'une passion pour la beauté naturelle et le respect de l'environnement. 
-            Fondée en 2020, notre entreprise s'est donnée pour mission de proposer des produits cosmétiques 100% naturels, 
-            fabriqués avec amour et dans le respect des traditions artisanales.
+            <strong>La Beauté Bio Tunisie</strong> est née d'une passion pour la beauté naturelle et le respect de l'environnement.
+            Fondée en 2018 à Tunis, notre entreprise tunisienne s'est donnée pour mission de proposer des produits cosmétiques 100% naturels,
+            fabriqués avec amour et dans le respect des traditions artisanales méditerranéennes.
         </p>
         <p>
-            Tout a commencé dans un petit atelier familial, où nous avons développé nos premières recettes de savons 
-            à base d'ingrédients biologiques. Aujourd'hui, nous sommes fiers de proposer une gamme complète de produits 
-            cosmétiques qui allient efficacité, douceur et respect de la nature.
+            Tout a commencé dans un petit atelier familial au cœur de la médina de Tunis, où nous avons développé nos premières recettes de savons
+            à base d'ingrédients biologiques locaux comme l'huile d'olive tunisienne et les plantes aromatiques du terroir.
+            Aujourd'hui, nous sommes fiers de proposer une gamme complète de produits cosmétiques qui allient efficacité, douceur et respect de la nature.
         </p>
     </div>
 
     <div class="about-section">
         <h2><i class="fas fa-heart"></i> Notre Philosophie</h2>
         <p>
-            Chez La Beauté Bio, nous croyons fermement que la beauté véritable vient de l'harmonie entre l'être humain et la nature. 
-            C'est pourquoi tous nos produits sont formulés exclusivement à partir d'ingrédients d'origine naturelle, 
-            sans additifs chimiques nocifs.
+            Chez La Beauté Bio Tunisie, nous croyons fermement que la beauté véritable vient de l'harmonie entre l'être humain et la nature méditerranéenne.
+            C'est pourquoi tous nos produits sont formulés exclusivement à partir d'ingrédients d'origine naturelle,
+            en privilégiant les trésors de la terre tunisienne, sans additifs chimiques nocifs.
         </p>
         
         <h3>Nos Engagements</h3>
@@ -252,11 +252,12 @@ $page_title = 'À propos - La Beauté Bio';
     </div>
     <div>
         <h3>Nous parler</h3>
-        <p><i class="fas fa-phone"></i> +33 1 23 45 67 89</p>
+        <p><i class="fas fa-phone"></i> +216 71 123 456</p>
+        <p><i class="fas fa-mobile-alt"></i> +216 98 765 432</p>
     </div>
     <div>
         <h3>Nous écrire</h3>
-        <p><a href="mailto:contact@labeautebio.fr" style="color: white;"><i class="fas fa-envelope"></i> contact@labeautebio.fr</a></p>
+        <p><a href="mailto:contact@labeautebio.tn" style="color: white;"><i class="fas fa-envelope"></i> contact@labeautebio.tn</a></p>
     </div>
 </footer>
 
