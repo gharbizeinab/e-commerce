@@ -267,11 +267,7 @@ while ($row = mysqli_fetch_assoc($result)) {
 <!-- User Menu -->
 <div class="user-menu">
     <?php if (isLoggedIn()): ?>
-        <?php if (isAdmin()): ?>
-            <a href="admin/index.php"><i class="fas fa-cog"></i> Admin</a>
-        <?php else: ?>
-            <a href="client/profile.php"><i class="fas fa-user"></i> Mon Profil</a>
-        <?php endif; ?>
+        <a href="client/profile.php"><i class="fas fa-user"></i> Mon Profil</a>
         <a href="logout.php"><i class="fas fa-sign-out-alt"></i> Déconnexion</a>
     <?php else: ?>
         <a href="client/login.php"><i class="fas fa-sign-in-alt"></i> Connexion</a>

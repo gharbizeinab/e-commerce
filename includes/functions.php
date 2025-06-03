@@ -42,11 +42,39 @@ function formatPrice($price) {
 }
 
 /**
- * Fonction simple pour rediriger
+ * Fonction simple pour obtenir un utilisateur par email
  */
-function redirect($url) {
-    header("Location: " . $url);
-    exit();
+function getUserByEmail($email) {
+    global $connection;
+    $email = cleanInput($email);
+    $sql = "SELECT * FROM users WHERE email = '$email'";
+    $result = executeQuery($sql);
+
+    if (mysqli_num_rows($result) > 0) {
+        return mysqli_fetch_assoc($result);
+    }
+    return null;
+}
+
+/**
+ * Fonction simple pour créer un nouvel utilisateur
+ */
+function createUser($data) {
+    global $connection;
+
+    $username = cleanInput($data['username']);
+    $email = cleanInput($data['email']);
+    $password = cleanInput($data['password']);
+    $full_name = cleanInput($data['full_name']);
+    $phone = isset($data['phone']) ? cleanInput($data['phone']) : '';
+    $address = isset($data['address']) ? cleanInput($data['address']) : '';
+    $role = isset($data['role']) ? cleanInput($data['role']) : 'client';
+
+    $sql = "INSERT INTO users (username, email, password, full_name, phone, address, role)
+            VALUES ('$username', '$email', '$password', '$full_name', '$phone', '$address', '$role')";
+
+    $result = mysqli_query($connection, $sql);
+    return $result;
 }
 
 /**
@@ -74,12 +102,34 @@ function getProductsByCategory($category_id = null) {
         $category_id = cleanInput($category_id);
         $sql = "SELECT p.*, c.name as category_name FROM products p
                 LEFT JOIN categories c ON p.category_id = c.id
-                WHERE p.category_id = '$category_id' ORDER BY p.name";
+                WHERE p.category_id = '$category_id' AND p.is_active = 1
+                ORDER BY p.name";
     } else {
         $sql = "SELECT p.*, c.name as category_name FROM products p
                 LEFT JOIN categories c ON p.category_id = c.id
+                WHERE p.is_active = 1
                 ORDER BY p.name";
     }
+
+    $result = executeQuery($sql);
+    $products = array();
+    while ($row = mysqli_fetch_assoc($result)) {
+        $products[] = $row;
+    }
+    return $products;
+}
+
+/**
+ * Fonction simple pour obtenir les produits en vedette
+ */
+function getFeaturedProducts($limit = 6) {
+    global $connection;
+    $limit = (int)$limit;
+    $sql = "SELECT p.*, c.name as category_name FROM products p
+            LEFT JOIN categories c ON p.category_id = c.id
+            WHERE p.is_featured = 1 AND p.is_active = 1
+            ORDER BY p.created_at DESC
+            LIMIT $limit";
 
     $result = executeQuery($sql);
     $products = array();
@@ -107,44 +157,6 @@ function getProductById($id) {
 }
 
 /**
- * Fonction simple pour obtenir un utilisateur par email
- */
-function getUserByEmail($email) {
-    global $connection;
-    $email = cleanInput($email);
-    $sql = "SELECT * FROM users WHERE email = '$email'";
-    $result = executeQuery($sql);
-
-    if (mysqli_num_rows($result) > 0) {
-        return mysqli_fetch_assoc($result);
-    }
-    return null;
-}
-
-
-
-/**
- * Fonction simple pour créer un nouvel utilisateur
- */
-function createUser($data) {
-    global $connection;
-
-    $username = cleanInput($data['username']);
-    $email = cleanInput($data['email']);
-    $password = cleanInput($data['password']);
-    $full_name = cleanInput($data['full_name']);
-    $phone = isset($data['phone']) ? cleanInput($data['phone']) : '';
-    $address = isset($data['address']) ? cleanInput($data['address']) : '';
-    $role = isset($data['role']) ? cleanInput($data['role']) : 'client';
-
-    $sql = "INSERT INTO users (username, email, password, full_name, phone, address, role)
-            VALUES ('$username', '$email', '$password', '$full_name', '$phone', '$address', '$role')";
-
-    $result = mysqli_query($connection, $sql);
-    return $result;
-}
-
-/**
  * Fonction simple pour ajouter un produit
  */
 function addProduct($data) {
@@ -158,8 +170,8 @@ function addProduct($data) {
     $stock_quantity = cleanInput($data['stock_quantity']);
     $characteristics = isset($data['characteristics']) ? cleanInput($data['characteristics']) : '';
 
-    $sql = "INSERT INTO products (name, description, price, category_id, image, stock_quantity, characteristics)
-            VALUES ('$name', '$description', '$price', '$category_id', '$image', '$stock_quantity', '$characteristics')";
+    $sql = "INSERT INTO products (name, description, price, category_id, image, stock_quantity, characteristics, is_active, is_featured)
+            VALUES ('$name', '$description', '$price', '$category_id', '$image', '$stock_quantity', '$characteristics', 1, 0)";
 
     $result = mysqli_query($connection, $sql);
     return $result;
@@ -205,6 +217,5 @@ function deleteProduct($product_id) {
     $result = mysqli_query($connection, $sql);
     return $result;
 }
-
 
 ?>

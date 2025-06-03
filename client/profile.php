@@ -17,12 +17,25 @@ $home_path = '../';
 $css_path = '../assets/css/';
 $js_path = '../assets/js/';
 
+// Generate CSRF token
+function generateCSRFToken() {
+    if (!isset($_SESSION['csrf_token'])) {
+        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+    }
+    return $_SESSION['csrf_token'];
+}
+
+// Verify CSRF token
+function verifyCSRFToken($token) {
+    return isset($_SESSION['csrf_token']) && hash_equals($_SESSION['csrf_token'], $token);
+}
+
 $errors = [];
 $success = false;
 
 // Get current user data
 $user_id = $_SESSION['user_id'];
-$stmt = $connection->query("SELECT * FROM users WHERE id = '$user_id'");
+$result = executeQuery("SELECT * FROM users WHERE id = '$user_id'");
 $user = mysqli_fetch_assoc($result);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -31,9 +44,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors[] = 'Token de sécurité invalide.';
     } else {
         // Sanitize input
-        $full_name = sanitizeInput($_POST['full_name'] ?? '');
-        $phone = sanitizeInput($_POST['phone'] ?? '');
-        $address = sanitizeInput($_POST['address'] ?? '');
+        $full_name = cleanInput($_POST['full_name'] ?? '');
+        $phone = cleanInput($_POST['phone'] ?? '');
+        $address = cleanInput($_POST['address'] ?? '');
         $current_password = $_POST['current_password'] ?? '';
         $new_password = $_POST['new_password'] ?? '';
         $confirm_password = $_POST['confirm_password'] ?? '';
@@ -68,18 +81,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'address' => $address
             ];
 
-            if (updateUser($connection, $user_id, $update_data)) {
+            // Update user data manually
+            $full_name_clean = cleanInput($full_name);
+            $phone_clean = cleanInput($phone);
+            $address_clean = cleanInput($address);
+
+            $sql = "UPDATE users SET full_name = '$full_name_clean', phone = '$phone_clean', address = '$address_clean', updated_at = NOW() WHERE id = '$user_id'";
+            $result = executeQuery($sql);
+
+            if ($result) {
                 // Update password if provided
                 if (!empty($new_password)) {
-                    $stmt = $connection->query("UPDATE users SET password = 'hashPassword($new_password)', updated_at = NOW() WHERE id = '$user_id'");
+                    $hashed_password = hashPassword($new_password);
+                    $sql_password = "UPDATE users SET password = '$hashed_password', updated_at = NOW() WHERE id = '$user_id'";
+                    executeQuery($sql_password);
                 }
 
                 $success = true;
                 $_SESSION['success_message'] = 'Profil mis à jour avec succès !';
                 $_SESSION['full_name'] = $full_name; // Update session data
-                
+
                 // Refresh user data
-                $stmt = $connection->query("SELECT * FROM users WHERE id = '$user_id'");
+                $result = executeQuery("SELECT * FROM users WHERE id = '$user_id'");
                 $user = mysqli_fetch_assoc($result);
             } else {
                 $errors[] = 'Erreur lors de la mise à jour du profil. Veuillez réessayer.';
@@ -89,10 +112,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 // Get user's orders
-$stmt = $connection->query("SELECT o.*, COUNT(oi.id) as item_count FROM orders o 
-                      LEFT JOIN order_items oi ON o.id = oi.order_id 
-                      WHERE o.user_id = '$user_id' 
-                      GROUP BY o.id 
+$result = executeQuery("SELECT o.*, COUNT(oi.id) as item_count FROM orders o
+                      LEFT JOIN order_items oi ON o.id = oi.order_id
+                      WHERE o.user_id = '$user_id'
+                      GROUP BY o.id
                       ORDER BY o.created_at DESC LIMIT 5");
 $recent_orders = array();
 while ($row = mysqli_fetch_assoc($result)) {

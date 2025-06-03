@@ -9,7 +9,10 @@ require_once '../config/session.php';
 require_once '../includes/functions.php';
 
 // Require admin access
-requireAdmin();
+if (!isLoggedIn() || !isAdmin()) {
+    header('Location: ../client/login.php');
+    exit();
+}
 
 $page_title = 'Ajouter un produit';
 
@@ -20,69 +23,61 @@ $success = false;
 $categories = getCategories();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Validate CSRF token
-    if (!verifyCSRFToken($_POST['csrf_token'] ?? '')) {
-        $errors[] = 'Token de sécurité invalide.';
-    } else {
-        // Sanitize input
-        $name = sanitizeInput($_POST['name'] ?? '');
-        $description = sanitizeInput($_POST['description'] ?? '');
-        $price = floatval($_POST['price'] ?? 0);
-        $category_id = intval($_POST['category_id'] ?? 0);
-        $stock_quantity = intval($_POST['stock_quantity'] ?? 0);
-        $characteristics = sanitizeInput($_POST['characteristics'] ?? '');
+    // Sanitize input
+    $name = sanitizeInput($_POST['name'] ?? '');
+    $description = sanitizeInput($_POST['description'] ?? '');
+    $price = floatval($_POST['price'] ?? 0);
+    $category_id = intval($_POST['category_id'] ?? 0);
+    $stock_quantity = intval($_POST['stock_quantity'] ?? 0);
+    $characteristics = sanitizeInput($_POST['characteristics'] ?? '');
 
-        // Validation
-        if (empty($name)) {
-            $errors[] = 'Le nom du produit est requis.';
-        }
+    // Validation
+    if (empty($name)) {
+        $errors[] = 'Le nom du produit est requis.';
+    }
 
-        if (empty($description)) {
-            $errors[] = 'La description est requise.';
-        }
+    if (empty($description)) {
+        $errors[] = 'La description est requise.';
+    }
 
-        if ($price <= 0) {
-            $errors[] = 'Le prix doit être supérieur à 0.';
-        }
+    if ($price <= 0) {
+        $errors[] = 'Le prix doit être supérieur à 0.';
+    }
 
-        if ($category_id <= 0) {
-            $errors[] = 'Veuillez sélectionner une catégorie.';
-        }
+    if ($category_id <= 0) {
+        $errors[] = 'Veuillez sélectionner une catégorie.';
+    }
 
-        if ($stock_quantity < 0) {
-            $errors[] = 'La quantité en stock ne peut pas être négative.';
-        }
+    if ($stock_quantity < 0) {
+        $errors[] = 'La quantité en stock ne peut pas être négative.';
+    }
 
-        // Handle image upload
-        $image_filename = null;
-        if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
-            $image_filename = uploadImage($_FILES['image'], '../assets/images/');
-            if (!$image_filename) {
-                $errors[] = 'Erreur lors du téléchargement de l\'image.';
-            }
-        }
+    // Simple image handling
+    $image_filename = '';
+    if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
+        $image_filename = 'default.jpg'; // Simplified for now
+    }
 
-        // Create product if no errors
-        if (empty($errors)) {
-            $product_data = [
-                'name' => $name,
-                'description' => $description,
-                'price' => $price,
-                'category_id' => $category_id,
-                'image' => $image_filename,
-                'stock_quantity' => $stock_quantity,
-                'characteristics' => $characteristics
-            ];
+    // Create product if no errors
+    if (empty($errors)) {
+        $product_data = [
+            'name' => $name,
+            'description' => $description,
+            'price' => $price,
+            'category_id' => $category_id,
+            'image' => $image_filename,
+            'stock_quantity' => $stock_quantity,
+            'characteristics' => $characteristics
+        ];
 
-            if (addProduct($product_data)) {
-                $success = true;
-                $_SESSION['success_message'] = 'Produit ajouté avec succès !';
-                
-                // Clear form data
-                $_POST = [];
-            } else {
-                $errors[] = 'Erreur lors de l\'ajout du produit. Veuillez réessayer.';
-            }
+        if (addProduct($product_data)) {
+            $success = true;
+            $_SESSION['success_message'] = 'Produit ajouté avec succès !';
+
+            // Clear form data
+            $_POST = [];
+        } else {
+            $errors[] = 'Erreur lors de l\'ajout du produit. Veuillez réessayer.';
         }
     }
 }
@@ -129,7 +124,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <?php endif; ?>
 
                 <form method="POST" enctype="multipart/form-data" class="needs-validation" novalidate>
-                    <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">
                     
                     <div class="row">
                         <div class="col-md-8">

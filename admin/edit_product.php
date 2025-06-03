@@ -1,110 +1,123 @@
 <?php
-/**
- * Admin Edit Product Page
- * Form to edit existing products
- */
-
 require_once '../config/database.php';
 require_once '../config/session.php';
 require_once '../includes/functions.php';
 
-// Require admin access
-requireAdmin();
-
-$page_title = 'Modifier un produit';
+// Check if user is admin
+if (!isLoggedIn() || !isAdmin()) {
+    header('Location: ../client/login.php');
+    exit();
+}
 
 $errors = [];
 $success = false;
 
-// Get product ID
-$product_id = intval($_GET['id'] ?? 0);
-if (!$product_id) {
-    $_SESSION['error_message'] = 'Produit non trouvé.';
+// Get product ID from URL
+$product_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+
+if ($product_id <= 0) {
     header('Location: products.php');
     exit();
 }
 
 // Get product data
-$product = getProductById($product_id);
-if (!$product) {
-    $_SESSION['error_message'] = 'Produit non trouvé.';
+$result = executeQuery("SELECT * FROM products WHERE id = $product_id");
+if (mysqli_num_rows($result) == 0) {
     header('Location: products.php');
     exit();
 }
+$product = mysqli_fetch_assoc($result);
 
 // Get categories
-$categories = getCategories();
+$result = executeQuery("SELECT * FROM categories ORDER BY name");
+$categories = [];
+while ($row = mysqli_fetch_assoc($result)) {
+    $categories[] = $row;
+}
 
+// Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Validate CSRF token
-    if (!verifyCSRFToken($_POST['csrf_token'] ?? '')) {
-        $errors[] = 'Token de sécurité invalide.';
-    } else {
-        // Sanitize input
-        $name = sanitizeInput($_POST['name'] ?? '');
-        $description = sanitizeInput($_POST['description'] ?? '');
-        $price = floatval($_POST['price'] ?? 0);
-        $category_id = intval($_POST['category_id'] ?? 0);
-        $stock_quantity = intval($_POST['stock_quantity'] ?? 0);
-        $characteristics = sanitizeInput($_POST['characteristics'] ?? '');
+    $name = cleanInput($_POST['name'] ?? '');
+    $description = cleanInput($_POST['description'] ?? '');
+    $price = floatval($_POST['price'] ?? 0);
+    $category_id = (int)($_POST['category_id'] ?? 0);
+    $stock_quantity = (int)($_POST['stock_quantity'] ?? 0);
+    $characteristics = cleanInput($_POST['characteristics'] ?? '');
 
-        // Validation
-        if (empty($name)) {
-            $errors[] = 'Le nom du produit est requis.';
-        }
+    // Validation
+    if (empty($name)) {
+        $errors[] = 'Le nom du produit est requis.';
+    }
 
-        if (empty($description)) {
-            $errors[] = 'La description est requise.';
-        }
+    if (empty($description)) {
+        $errors[] = 'La description est requise.';
+    }
 
-        if ($price <= 0) {
-            $errors[] = 'Le prix doit être supérieur à 0.';
-        }
+    if ($price <= 0) {
+        $errors[] = 'Le prix doit être supérieur à 0.';
+    }
 
-        if ($category_id <= 0) {
-            $errors[] = 'Veuillez sélectionner une catégorie.';
-        }
+    if ($category_id <= 0) {
+        $errors[] = 'Veuillez sélectionner une catégorie.';
+    }
 
-        if ($stock_quantity < 0) {
-            $errors[] = 'La quantité en stock ne peut pas être négative.';
-        }
+    if ($stock_quantity < 0) {
+        $errors[] = 'La quantité en stock ne peut pas être négative.';
+    }
 
-        // Handle image upload
-        $image_filename = $product['image']; // Keep existing image by default
-        if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
-            $new_image = uploadImage($_FILES['image'], '../assets/images/');
-            if ($new_image) {
-                // Delete old image if exists
-                if ($product['image'] && file_exists('../assets/images/' . $product['image'])) {
-                    unlink('../assets/images/' . $product['image']);
+    // Handle image upload
+    $image_path = $product['image']; // Keep existing image by default
+
+    if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
+        $upload_dir = '../images/products/';
+        $allowed_types = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+        $max_size = 5 * 1024 * 1024; // 5MB
+
+        if (!in_array($_FILES['image']['type'], $allowed_types)) {
+            $errors[] = 'Type de fichier non autorisé. Utilisez JPG, PNG, GIF ou WebP.';
+        } elseif ($_FILES['image']['size'] > $max_size) {
+            $errors[] = 'Le fichier est trop volumineux (max 5MB).';
+        } else {
+            $file_extension = pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION);
+            $new_filename = 'product_' . $product_id . '_' . time() . '.' . $file_extension;
+            $upload_path = $upload_dir . $new_filename;
+
+            if (move_uploaded_file($_FILES['image']['tmp_name'], $upload_path)) {
+                // Delete old image if it exists and is different
+                if ($product['image'] && $product['image'] !== 'images/products/' . $new_filename && file_exists('../' . $product['image'])) {
+                    unlink('../' . $product['image']);
                 }
-                $image_filename = $new_image;
+                $image_path = 'images/products/' . $new_filename;
             } else {
                 $errors[] = 'Erreur lors du téléchargement de l\'image.';
             }
         }
+    }
 
-        // Update product if no errors
-        if (empty($errors)) {
-            $product_data = [
-                'name' => $name,
-                'description' => $description,
-                'price' => $price,
-                'category_id' => $category_id,
-                'image' => $image_filename,
-                'stock_quantity' => $stock_quantity,
-                'characteristics' => $characteristics
-            ];
+    // Update product if no errors
+    if (empty($errors)) {
+        $sql = "UPDATE products SET
+                name = '$name',
+                description = '$description',
+                price = $price,
+                category_id = $category_id,
+                stock_quantity = $stock_quantity,
+                image = '$image_path',
+                characteristics = '$characteristics',
+                updated_at = NOW()
+                WHERE id = $product_id";
 
-            if (updateProduct($product_id, $product_data)) {
-                $success = true;
-                $_SESSION['success_message'] = 'Produit modifié avec succès !';
-                
-                // Refresh product data
-                $product = getProductById($product_id);
-            } else {
-                $errors[] = 'Erreur lors de la modification du produit. Veuillez réessayer.';
-            }
+        $result = executeQuery($sql);
+
+        if ($result) {
+            $success = true;
+            $_SESSION['success_message'] = 'Produit modifié avec succès !';
+
+            // Refresh product data
+            $result = executeQuery("SELECT * FROM products WHERE id = $product_id");
+            $product = mysqli_fetch_assoc($result);
+        } else {
+            $errors[] = 'Erreur lors de la modification du produit.';
         }
     }
 }
@@ -153,7 +166,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <?php endif; ?>
 
                 <form method="POST" enctype="multipart/form-data" class="needs-validation" novalidate>
-                    <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">
+
                     
                     <div class="row">
                         <div class="col-md-8">
@@ -190,7 +203,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 
                                 <?php if ($product['image']): ?>
                                     <div class="mb-2">
-                                        <img src="../assets/images/<?php echo htmlspecialchars($product['image']); ?>" 
+                                        <img src="../<?php echo htmlspecialchars($product['image']); ?>"
                                              alt="Image actuelle" class="img-thumbnail" style="max-width: 200px;">
                                         <div class="form-text">Image actuelle</div>
                                     </div>
@@ -226,7 +239,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                         <div class="col-md-4">
                             <div class="mb-3">
-                                <label for="price" class="form-label">Prix (€) *</label>
+                                <label for="price" class="form-label">Prix (TND) *</label>
                                 <input type="number" class="form-control" id="price" name="price" 
                                        step="0.01" min="0.01" 
                                        value="<?php echo htmlspecialchars($_POST['price'] ?? $product['price']); ?>" 

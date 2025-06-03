@@ -159,19 +159,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             text-decoration: underline;
         }
         
-        .demo-info {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 20px;
-            font-size: 14px;
-            text-align: center;
-        }
-        
-        .demo-info h4 {
-            color: #7c943f;
-            margin-bottom: 10px;
-        }
+
     </style>
 </head>
 <body>
@@ -211,13 +199,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             <button type="submit" class="btn">Se connecter</button>
         </form>
-        
-        <div class="demo-info">
-            <h4>🧪 Compte de test</h4>
-            <p><strong>Admin :</strong> admin@cosmetics.com / admin123</p>
-            <p><strong>Ou créez</strong> votre propre compte</p>
+
+        <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-top: 20px; text-align: center; font-size: 14px;">
+            <p style="color: #6c757d; margin: 0;">
+                <i class="fas fa-info-circle"></i>
+                Nouveau client ? Créez votre compte pour profiter de nos produits bio tunisiens.
+            </p>
         </div>
-        
+
         <div class="links">
             <a href="register.php">📝 Créer un compte</a> |
             <a href="../index.php">🏠 Retour à l'accueil</a>

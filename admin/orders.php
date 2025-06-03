@@ -25,29 +25,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             try {
                 switch ($action) {
                     case 'confirm':
-                        $stmt = $connection->query("UPDATE orders SET status = 'confirmed' WHERE id = $order_id");
-                        if ($stmt) {
+                        $result = executeQuery("UPDATE orders SET status = 'confirmed' WHERE id = $order_id");
+                        if ($result) {
                             $_SESSION['success_message'] = 'Commande confirmée avec succès.';
                         }
                         break;
 
                     case 'decline':
-                        $stmt = $connection->query("UPDATE orders SET status = 'declined' WHERE id = $order_id");
-                        if ($stmt) {
+                        $result = executeQuery("UPDATE orders SET status = 'declined' WHERE id = $order_id");
+                        if ($result) {
                             $_SESSION['success_message'] = 'Commande refusée.';
                         }
                         break;
 
                     case 'ship':
-                        $stmt = $connection->query("UPDATE orders SET status = 'shipped' WHERE id = $order_id");
-                        if ($stmt) {
+                        $result = executeQuery("UPDATE orders SET status = 'shipped' WHERE id = $order_id");
+                        if ($result) {
                             $_SESSION['success_message'] = 'Commande marquée comme expédiée.';
                         }
                         break;
 
                     case 'deliver':
-                        $stmt = $connection->query("UPDATE orders SET status = 'delivered' WHERE id = $order_id");
-                        if ($stmt) {
+                        $result = executeQuery("UPDATE orders SET status = 'delivered' WHERE id = $order_id");
+                        if ($result) {
                             $_SESSION['success_message'] = 'Commande marquée comme livrée.';
                         }
                         break;
@@ -90,7 +90,7 @@ $sql = "SELECT o.*, u.full_name, u.email, u.phone,
         GROUP BY o.id
         ORDER BY o.created_at DESC";
 
-$stmt = $connection->query($sql);
+$result = executeQuery($sql);
 $orders = array();
 while ($row = mysqli_fetch_assoc($result)) {
     $orders[] = $row;
@@ -106,7 +106,8 @@ $stats_sql = "SELECT
                 COUNT(CASE WHEN status = 'delivered' THEN 1 END) as delivered_orders,
                 SUM(CASE WHEN status IN ('confirmed', 'shipped', 'delivered') THEN total_amount ELSE 0 END) as total_revenue
               FROM orders";
-$stats = $connection->query($stats_sql)->fetch();
+$result = executeQuery($stats_sql);
+$stats = mysqli_fetch_assoc($result);
 ?>
 
 <?php include '../includes/admin_header.php'; ?>

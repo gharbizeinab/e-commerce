@@ -9,12 +9,15 @@ require_once '../config/session.php';
 require_once '../includes/functions.php';
 
 // Require admin access
-requireAdmin();
+if (!isLoggedIn() || !isAdmin()) {
+    header('Location: ../client/login.php');
+    exit();
+}
 
 $page_title = 'Gestion des produits';
 
 // Get all products with category information
-$stmt = $connection->query("SELECT p.*, c.name as category_name FROM products p
+$result = executeQuery("SELECT p.*, c.name as category_name FROM products p
                     LEFT JOIN categories c ON p.category_id = c.id
                     ORDER BY p.name");
 $products = array();

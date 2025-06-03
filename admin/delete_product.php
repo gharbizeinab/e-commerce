@@ -1,46 +1,39 @@
 <?php
-/**
- * Admin Delete Product
- * Handle product deletion
- */
-
 require_once '../config/database.php';
 require_once '../config/session.php';
 require_once '../includes/functions.php';
 
-// Require admin access
-requireAdmin();
+// Check if user is admin
+if (!isLoggedIn() || !isAdmin()) {
+    header('Location: ../client/login.php');
+    exit();
+}
 
 // Get product ID
-$product_id = intval($_GET['id'] ?? 0);
-if (!$product_id) {
+$product_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+if ($product_id <= 0) {
     $_SESSION['error_message'] = 'Produit non trouvé.';
     header('Location: products.php');
     exit();
 }
 
 // Get product data
-$product = getProductById($product_id);
-if (!$product) {
+$result = executeQuery("SELECT p.*, c.name as category_name FROM products p
+                       LEFT JOIN categories c ON p.category_id = c.id
+                       WHERE p.id = $product_id");
+if (mysqli_num_rows($result) == 0) {
     $_SESSION['error_message'] = 'Produit non trouvé.';
     header('Location: products.php');
     exit();
 }
+$product = mysqli_fetch_assoc($result);
 
 // Handle deletion
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Validate CSRF token
-    if (!verifyCSRFToken($_POST['csrf_token'] ?? '')) {
-        $_SESSION['error_message'] = 'Token de sécurité invalide.';
-        header('Location: products.php');
-        exit();
-    }
-
-    // Check if product is referenced in orders (version sans prepare)
-    $product_id = intval($product_id);
-    $query = "SELECT COUNT(*) as count FROM order_items WHERE product_id = $product_id";
-    $result = $connection->query($query);
-    $order_count = $result->fetch()['count'];
+    // Check if product is referenced in orders
+    $result = executeQuery("SELECT COUNT(*) as count FROM order_items WHERE product_id = $product_id");
+    $row = mysqli_fetch_assoc($result);
+    $order_count = $row['count'];
 
     if ($order_count > 0) {
         $_SESSION['error_message'] = 'Impossible de supprimer ce produit car il est référencé dans des commandes.';
@@ -49,12 +42,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     // Delete product image if exists
-    if ($product['image'] && file_exists('../assets/images/' . $product['image'])) {
-        unlink('../assets/images/' . $product['image']);
+    if ($product['image'] && file_exists('../' . $product['image'])) {
+        unlink('../' . $product['image']);
     }
 
     // Delete product
-    if (deleteProduct($product_id)) {
+    $result = executeQuery("DELETE FROM products WHERE id = $product_id");
+    if ($result) {
         $_SESSION['success_message'] = 'Produit "' . htmlspecialchars($product['name']) . '" supprimé avec succès.';
     } else {
         $_SESSION['error_message'] = 'Erreur lors de la suppression du produit.';
@@ -117,8 +111,8 @@ $logout_path = '../';
                 <div class="row">
                     <div class="col-md-4">
                         <?php if ($product['image']): ?>
-                            <img src="../assets/images/<?php echo htmlspecialchars($product['image']); ?>" 
-                                 alt="<?php echo htmlspecialchars($product['name']); ?>" 
+                            <img src="../<?php echo htmlspecialchars($product['image']); ?>"
+                                 alt="<?php echo htmlspecialchars($product['name']); ?>"
                                  class="img-fluid rounded">
                         <?php else: ?>
                             <div class="bg-light d-flex align-items-center justify-content-center rounded" 
@@ -159,7 +153,6 @@ $logout_path = '../';
                 </p>
 
                 <form method="POST" class="d-flex justify-content-between">
-                    <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">
                     
                     <a href="products.php" class="btn btn-secondary">
                         <i class="fas fa-times"></i> Annuler

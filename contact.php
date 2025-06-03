@@ -125,11 +125,7 @@ $errors = [];
 <!-- User Menu -->
 <div class="user-menu">
     <?php if (isLoggedIn()): ?>
-        <?php if (isAdmin()): ?>
-            <a href="admin/index.php"><i class="fas fa-cog"></i> Admin</a>
-        <?php else: ?>
-            <a href="client/profile.php"><i class="fas fa-user"></i> Mon Profil</a>
-        <?php endif; ?>
+        <a href="client/profile.php"><i class="fas fa-user"></i> Mon Profil</a>
         <a href="logout.php"><i class="fas fa-sign-out-alt"></i> Déconnexion</a>
     <?php else: ?>
         <a href="client/login.php"><i class="fas fa-sign-in-alt"></i> Connexion</a>
@@ -177,9 +173,9 @@ $errors = [];
                     <i class="fas fa-map-marker-alt"></i>
                     <div>
                         <strong>Adresse</strong><br>
-                        Avenue Habib Bourguiba<br>
-                        Centre Ville, 1001 Tunis<br>
-                        Tunisie
+                        15 Avenue Habib Bourguiba<br>
+                        1000 Tunis, Tunisie<br>
+                        <small>Près de la Place de l'Indépendance</small>
                     </div>
                 </div>
                 
@@ -205,10 +201,11 @@ $errors = [];
                 <div class="info-item">
                     <i class="fas fa-clock"></i>
                     <div>
-                        <strong>Horaires</strong><br>
-                        Lundi - Vendredi: 8h30 - 17h30<br>
-                        Samedi: 9h00 - 16h00<br>
-                        Dimanche: Fermé
+                        <strong>Horaires d'ouverture</strong><br>
+                        Lundi - Vendredi: 9h00 - 18h00<br>
+                        Samedi: 9h00 - 17h00<br>
+                        Dimanche: 10h00 - 14h00<br>
+                        <small>Fermé les jours fériés</small>
                     </div>
                 </div>
             </div>
